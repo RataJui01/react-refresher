@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/pagination";
 
 /**
- * Reads/writes ?page= in the URL. Does NOT slice data — slicing is a TODO.
+ * Reads/writes ?page= in the URL. Slicing happens in the calling page.
  * @param {{ pageCount: number }} props
  */
 export default function CatalogPagination({ pageCount }) {

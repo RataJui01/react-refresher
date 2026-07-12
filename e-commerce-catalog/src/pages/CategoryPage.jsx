@@ -1,12 +1,19 @@
 import { useParams, useSearchParams } from "react-router-dom";
 import { LayoutGrid, SearchX } from "lucide-react";
 import { getCategoryBySlug, getProductsByCategory } from "@/data/products";
+import {
+  filterProducts,
+  getFiltersFromSearchParams,
+  paginate,
+} from "@/lib/catalogFilters";
 import PageBreadcrumb from "@/components/catalog/PageBreadcrumb";
 import FilterSidebar from "@/components/catalog/FilterSidebar";
 import SortBar from "@/components/catalog/SortBar";
 import CatalogPagination from "@/components/catalog/CatalogPagination";
 import ProductCard from "@/components/product/ProductCard";
 import EmptyState from "@/components/common/EmptyState";
+
+const PRODUCTS_PER_PAGE = 2;
 
 export default function CategoryPage() {
   const { categorySlug } = useParams();
@@ -44,21 +51,15 @@ export default function CategoryPage() {
     );
   }
 
-  const selectedBrands = searchParams.getAll("brand");
-  const minPrice = Number(searchParams.get("minPrice")) || 0;
-  const maxPrice = Number(searchParams.get("maxPrice")) || 10000;
-  const minRating = searchParams.get("minRating") ?? "";
-  const inStock = searchParams.get("inStock") === "1";
+  const filters = getFiltersFromSearchParams(searchParams);
+  const filteredProducts = filterProducts(products, filters);
 
-  const filteredProducts = products
-    .filter((product) =>
-      selectedBrands.length > 0 ? selectedBrands.includes(product.brand) : true,
-    )
-    .filter((product) => product.price >= minPrice && product.price <= maxPrice)
-    .filter((product) =>
-      minRating ? product.rating >= Number(minRating) : true,
-    )
-    .filter((product) => (inStock ? product.inStock : true));
+  const requestedPage = Number(searchParams.get("page")) || 1;
+  const { pageCount, pagedItems: pagedProducts } = paginate(
+    filteredProducts,
+    requestedPage,
+    PRODUCTS_PER_PAGE,
+  );
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -94,14 +95,13 @@ export default function CategoryPage() {
             />
           ) : (
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
-              {filteredProducts.map((product) => (
+              {pagedProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>
           )}
 
-          {/* Pagination — TODO: slice products by page */}
-          <CatalogPagination pageCount={3} />
+          <CatalogPagination pageCount={pageCount} />
         </div>
       </div>
     </div>

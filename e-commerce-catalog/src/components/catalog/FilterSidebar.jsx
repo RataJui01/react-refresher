@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { DEFAULT_MAX_PRICE, DEFAULT_MIN_PRICE } from "@/lib/catalogFilters";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -15,16 +16,16 @@ const RATING_OPTIONS = [
 ];
 
 /**
- * All filter state lives in the URL. No actual filtering applied here —
- * CategoryPage/SearchResultsPage always shows the full product list (TODO).
+ * All filter state lives in the URL — CategoryPage reads it via
+ * getFiltersFromSearchParams and applies it with filterProducts.
  *
  * @param {{ brands: string[] }} props
  */
 export default function FilterSidebar({ brands = [] }) {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const minPrice = Number(searchParams.get("minPrice")) || 0;
-  const maxPrice = Number(searchParams.get("maxPrice")) || 10000;
+  const minPrice = Number(searchParams.get("minPrice")) || DEFAULT_MIN_PRICE;
+  const maxPrice = Number(searchParams.get("maxPrice")) || DEFAULT_MAX_PRICE;
   const selectedBrands = searchParams.getAll("brand");
   const minRating = searchParams.get("minRating") ?? "";
   const inStock = searchParams.get("inStock") === "1";
@@ -98,17 +99,17 @@ export default function FilterSidebar({ brands = [] }) {
       <div className="space-y-3">
         <h4 className="text-sm font-medium">Price range</h4>
         <Slider
-          min={0}
-          max={10000}
+          min={DEFAULT_MIN_PRICE}
+          max={DEFAULT_MAX_PRICE}
           step={100}
           value={priceRange}
           onValueChange={setPriceRange}
           onValueCommit={([min, max]) => {
             const next = new URLSearchParams(searchParams);
-            min > 0
+            min > DEFAULT_MIN_PRICE
               ? next.set("minPrice", String(min))
               : next.delete("minPrice");
-            max < 10000
+            max < DEFAULT_MAX_PRICE
               ? next.set("maxPrice", String(max))
               : next.delete("maxPrice");
             next.delete("page");
