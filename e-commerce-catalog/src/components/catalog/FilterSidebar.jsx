@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -28,6 +29,14 @@ export default function FilterSidebar({ brands = [] }) {
   const minRating = searchParams.get("minRating") ?? "";
   const inStock = searchParams.get("inStock") === "1";
 
+  const [priceRange, setPriceRange] = useState([minPrice, maxPrice]);
+  const [syncedPrice, setSyncedPrice] = useState([minPrice, maxPrice]);
+
+  if (syncedPrice[0] !== minPrice || syncedPrice[1] !== maxPrice) {
+    setSyncedPrice([minPrice, maxPrice]);
+    setPriceRange([minPrice, maxPrice]);
+  }
+
   const update = (key, value) => {
     const next = new URLSearchParams(searchParams);
     if (value === null || value === "") {
@@ -44,7 +53,9 @@ export default function FilterSidebar({ brands = [] }) {
     const current = next.getAll("brand");
     next.delete("brand");
     if (current.includes(brand)) {
-      current.filter((b) => b !== brand).forEach((b) => next.append("brand", b));
+      current
+        .filter((b) => b !== brand)
+        .forEach((b) => next.append("brand", b));
     } else {
       [...current, brand].forEach((b) => next.append("brand", b));
     }
@@ -55,7 +66,7 @@ export default function FilterSidebar({ brands = [] }) {
   const clearAll = () => {
     const next = new URLSearchParams(searchParams);
     ["minPrice", "maxPrice", "brand", "minRating", "inStock", "page"].forEach(
-      (k) => next.delete(k)
+      (k) => next.delete(k),
     );
     setSearchParams(next);
   };
@@ -71,11 +82,14 @@ export default function FilterSidebar({ brands = [] }) {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h3 className="font-semibold">Filters</h3>
-        {hasFilters && (
-          <Button variant="ghost" size="sm" onClick={clearAll}>
-            Clear all
-          </Button>
-        )}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={clearAll}
+          disabled={!hasFilters}
+        >
+          Clear all
+        </Button>
       </div>
 
       <Separator />
@@ -87,19 +101,24 @@ export default function FilterSidebar({ brands = [] }) {
           min={0}
           max={10000}
           step={100}
-          value={[minPrice, maxPrice]}
+          value={priceRange}
+          onValueChange={setPriceRange}
           onValueCommit={([min, max]) => {
             const next = new URLSearchParams(searchParams);
-            min > 0 ? next.set("minPrice", String(min)) : next.delete("minPrice");
-            max < 10000 ? next.set("maxPrice", String(max)) : next.delete("maxPrice");
+            min > 0
+              ? next.set("minPrice", String(min))
+              : next.delete("minPrice");
+            max < 10000
+              ? next.set("maxPrice", String(max))
+              : next.delete("maxPrice");
             next.delete("page");
             setSearchParams(next);
           }}
           className="w-full"
         />
-        <div className="flex justify-between text-xs text-muted-foreground">
-          <span>฿{minPrice.toLocaleString()}</span>
-          <span>฿{maxPrice.toLocaleString()}</span>
+        <div className="text-muted-foreground flex justify-between text-xs">
+          <span>฿{priceRange[0].toLocaleString()}</span>
+          <span>฿{priceRange[1].toLocaleString()}</span>
         </div>
       </div>
 
@@ -120,7 +139,7 @@ export default function FilterSidebar({ brands = [] }) {
                   />
                   <Label
                     htmlFor={`brand-${brand}`}
-                    className="text-sm font-normal cursor-pointer"
+                    className="cursor-pointer text-sm font-normal"
                   >
                     {brand}
                   </Label>
@@ -145,7 +164,7 @@ export default function FilterSidebar({ brands = [] }) {
               <RadioGroupItem value={opt.value} id={`rating-${opt.value}`} />
               <Label
                 htmlFor={`rating-${opt.value}`}
-                className="text-sm font-normal cursor-pointer"
+                className="cursor-pointer text-sm font-normal"
               >
                 {opt.label}
               </Label>
@@ -161,11 +180,9 @@ export default function FilterSidebar({ brands = [] }) {
         <Checkbox
           id="inStock"
           checked={inStock}
-          onCheckedChange={(checked) =>
-            update("inStock", checked ? "1" : null)
-          }
+          onCheckedChange={(checked) => update("inStock", checked ? "1" : null)}
         />
-        <Label htmlFor="inStock" className="text-sm font-normal cursor-pointer">
+        <Label htmlFor="inStock" className="cursor-pointer text-sm font-normal">
           In stock only
         </Label>
       </div>
