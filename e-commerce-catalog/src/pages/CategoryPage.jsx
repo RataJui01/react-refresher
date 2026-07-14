@@ -5,6 +5,7 @@ import {
   filterProducts,
   getFiltersFromSearchParams,
   paginate,
+  sortProducts,
 } from "@/lib/catalogFilters";
 import PageBreadcrumb from "@/components/catalog/PageBreadcrumb";
 import FilterSidebar from "@/components/catalog/FilterSidebar";
@@ -53,10 +54,14 @@ export default function CategoryPage() {
 
   const filters = getFiltersFromSearchParams(searchParams);
   const filteredProducts = filterProducts(products, filters);
+  const sortedProducts = sortProducts(
+    filteredProducts,
+    searchParams.get("sort"),
+  );
 
   const requestedPage = Number(searchParams.get("page")) || 1;
   const { pageCount, pagedItems: pagedProducts } = paginate(
-    filteredProducts,
+    sortedProducts,
     requestedPage,
     PRODUCTS_PER_PAGE,
   );
@@ -83,7 +88,7 @@ export default function CategoryPage() {
 
         {/* Main content */}
         <div className="flex flex-1 flex-col gap-6">
-          <SortBar count={filteredProducts.length} brands={brands} />
+          <SortBar count={pagedProducts.length} brands={brands} />
 
           {filteredProducts.length === 0 ? (
             <EmptyState

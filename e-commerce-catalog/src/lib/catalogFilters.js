@@ -25,6 +25,21 @@ export function filterProducts(products, filters) {
     .filter((product) => (inStock ? product.inStock : true));
 }
 
+export function sortProducts(products, sort) {
+  switch (sort) {
+    case "price-asc":
+      return [...products].sort((a, b) => a.price - b.price);
+    case "price-desc":
+      return [...products].sort((a, b) => b.price - a.price);
+    case "newest":
+      return [...products].sort(
+        (a, b) => Number(b.id.slice(1)) - Number(a.id.slice(1)),
+      );
+    default:
+      return products;
+  }
+}
+
 export function paginate(items, page, perPage) {
   const pageCount = Math.max(1, Math.ceil(items.length / perPage));
   const currentPage = Math.min(Math.max(1, page), pageCount);
