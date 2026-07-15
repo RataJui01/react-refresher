@@ -11,6 +11,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { useCart } from "@/context/CartContext";
 
 const navLinks = [
   { label: "Electronics", to: "/category/electronics" },
@@ -23,6 +24,7 @@ export default function Header() {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { state } = useCart();
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -38,7 +40,7 @@ export default function Header() {
         {/* Logo */}
         <Link
           to="/"
-          className="font-display text-xl font-bold tracking-tight text-primary shrink-0"
+          className="shrink-0 font-display text-xl font-bold tracking-tight text-primary"
         >
           TERRA
         </Link>
@@ -61,10 +63,10 @@ export default function Header() {
           onSubmit={handleSearch}
           className="ml-auto hidden flex-1 items-center gap-2 md:flex"
         >
-          <div className="relative flex-1 max-w-sm">
+          <div className="relative max-w-sm flex-1">
             <Search
               size={16}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+              className="absolute top-1/2 left-3 -translate-y-1/2 text-muted-foreground"
             />
             <Input
               value={query}
@@ -82,10 +84,11 @@ export default function Header() {
         <Button asChild variant="ghost" size="icon" className="relative">
           <Link to="/cart">
             <ShoppingCart size={20} />
-            {/* Hardcoded badge — TODO: sync with global cart state */}
-            <Badge className="absolute -right-1 -top-1 h-5 min-w-5 justify-center rounded-full px-1 text-xs">
-              2
-            </Badge>
+            {state.length > 0 && (
+              <Badge className="absolute -top-1 -right-1 h-5 min-w-5 justify-center rounded-full px-1 text-xs">
+                {state.reduce((total, item) => total + item.qty, 0)}
+              </Badge>
+            )}
           </Link>
         </Button>
 
@@ -98,7 +101,7 @@ export default function Header() {
           </SheetTrigger>
           <SheetContent side="right" className="w-72">
             <SheetHeader>
-              <SheetTitle className="font-display text-left text-primary">
+              <SheetTitle className="text-left font-display text-primary">
                 TERRA
               </SheetTitle>
             </SheetHeader>
@@ -133,7 +136,7 @@ export default function Header() {
                   onClick={() => setMobileOpen(false)}
                   className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
                 >
-                  Cart (2)
+                  Cart ({state.reduce((total, item) => total + item.qty, 0)})
                 </Link>
               </nav>
             </div>

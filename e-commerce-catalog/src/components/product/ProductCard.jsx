@@ -3,10 +3,22 @@ import { ShoppingCart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Rating from "./Rating";
+import { useCart } from "@/context/CartContext";
 
 export default function ProductCard({ product }) {
-  const { id, name, brand, price, originalPrice, rating, reviewCount, inStock, images } =
-    product;
+  const {
+    id,
+    name,
+    brand,
+    price,
+    originalPrice,
+    rating,
+    reviewCount,
+    inStock,
+    images,
+  } = product;
+
+  const { dispatch } = useCart();
 
   return (
     <div className="group flex flex-col overflow-hidden rounded-xl border bg-background transition-shadow hover:shadow-md">
@@ -24,7 +36,7 @@ export default function ProductCard({ product }) {
           </div>
         )}
         {originalPrice && (
-          <Badge className="absolute left-3 top-3 bg-destructive text-destructive-foreground">
+          <Badge className="absolute top-3 left-3 bg-destructive text-destructive-foreground">
             Sale
           </Badge>
         )}
@@ -33,11 +45,11 @@ export default function ProductCard({ product }) {
       <div className="flex flex-1 flex-col gap-2 p-4">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
               {brand}
             </p>
             <Link to={`/product/${id}`}>
-              <h3 className="mt-0.5 line-clamp-2 text-sm font-medium leading-snug hover:text-primary">
+              <h3 className="mt-0.5 line-clamp-2 text-sm leading-snug font-medium hover:text-primary">
                 {name}
               </h3>
             </Link>
@@ -48,7 +60,9 @@ export default function ProductCard({ product }) {
 
         <div className="mt-auto flex items-center justify-between pt-2">
           <div>
-            <span className="text-base font-semibold">฿{price.toLocaleString()}</span>
+            <span className="text-base font-semibold">
+              ฿{price.toLocaleString()}
+            </span>
             {originalPrice && (
               <span className="ml-2 text-sm text-muted-foreground line-through">
                 ฿{originalPrice.toLocaleString()}
@@ -60,9 +74,7 @@ export default function ProductCard({ product }) {
             size="sm"
             variant="outline"
             disabled={!inStock}
-            onClick={() => {
-              // TODO: dispatch add to cart
-            }}
+            onClick={() => dispatch({ type: "ADD_ITEM", productId: id })}
             className="shrink-0"
           >
             <ShoppingCart size={14} />

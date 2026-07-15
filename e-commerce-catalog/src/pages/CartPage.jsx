@@ -1,22 +1,16 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
 import { getProductById } from "@/data/products";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import EmptyState from "@/components/common/EmptyState";
-
-// Hardcoded initial cart items — TODO: replace with global cart state
-const INITIAL_ITEMS = [
-  { productId: "p1", qty: 1 },
-  { productId: "p4", qty: 2 },
-];
+import { useCart } from "@/context/CartContext";
 
 const SHIPPING_THRESHOLD = 1500;
 const SHIPPING_FEE = 150;
 
 export default function CartPage() {
-  const [items, setItems] = useState(INITIAL_ITEMS);
+  const { state: items, dispatch } = useCart();
 
   const cartItems = items
     .map(({ productId, qty }) => {
@@ -27,29 +21,23 @@ export default function CartPage() {
 
   const subtotal = cartItems.reduce(
     (sum, { product, qty }) => sum + product.price * qty,
-    0
+    0,
   );
   const shipping = subtotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
   const total = subtotal + shipping;
 
   const updateQty = (productId, delta) => {
-    setItems((prev) =>
-      prev.map((item) =>
-        item.productId === productId
-          ? { ...item, qty: Math.max(1, item.qty + delta) }
-          : item
-      )
-    );
+    dispatch({ type: "UPDATE_QTY", productId, delta });
   };
 
   const removeItem = (productId) => {
-    setItems((prev) => prev.filter((item) => item.productId !== productId));
+    dispatch({ type: "REMOVE_ITEM", productId });
   };
 
   if (cartItems.length === 0) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <h1 className="font-display mb-8 text-3xl font-bold">Your cart</h1>
+        <h1 className="mb-8 font-display text-3xl font-bold">Your cart</h1>
         <EmptyState
           icon={ShoppingBag}
           heading="Your cart is empty"
@@ -63,7 +51,7 @@ export default function CartPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <h1 className="font-display mb-8 text-3xl font-bold">Your cart</h1>
+      <h1 className="mb-8 font-display text-3xl font-bold">Your cart</h1>
 
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-3">
         {/* Cart items */}
@@ -84,12 +72,12 @@ export default function CartPage() {
               <div className="flex flex-1 flex-col justify-between gap-2">
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
                       {product.brand}
                     </p>
                     <Link
                       to={`/product/${product.id}`}
-                      className="text-sm font-medium leading-snug hover:text-primary"
+                      className="text-sm leading-snug font-medium hover:text-primary"
                     >
                       {product.name}
                     </Link>
@@ -138,7 +126,7 @@ export default function CartPage() {
 
         {/* Order summary */}
         <div className="h-fit rounded-xl border bg-background p-6 lg:sticky lg:top-24">
-          <h2 className="font-display mb-4 text-lg font-semibold">
+          <h2 className="mb-4 font-display text-lg font-semibold">
             Order summary
           </h2>
           <Separator className="mb-4" />
@@ -158,8 +146,8 @@ export default function CartPage() {
             </div>
             {shipping > 0 && (
               <p className="text-xs text-muted-foreground">
-                Add ฿{(SHIPPING_THRESHOLD - subtotal).toLocaleString()} more
-                for free shipping
+                Add ฿{(SHIPPING_THRESHOLD - subtotal).toLocaleString()} more for
+                free shipping
               </p>
             )}
           </div>
