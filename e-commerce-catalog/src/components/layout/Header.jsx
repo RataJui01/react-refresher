@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, ShoppingCart, Menu, X } from "lucide-react";
+import { Search, ShoppingCart, Heart, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
 
 const navLinks = [
   { label: "Electronics", to: "/category/electronics" },
@@ -25,6 +26,7 @@ export default function Header() {
   const [query, setQuery] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
   const { state } = useCart();
+  const { state: wishlistState } = useWishlist();
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -80,6 +82,18 @@ export default function Header() {
           </Button>
         </form>
 
+        {/* Wishlist */}
+        <Button asChild variant="ghost" size="icon" className="relative">
+          <Link to="/wishlist">
+            <Heart size={20} />
+            {wishlistState.length > 0 && (
+              <Badge className="absolute -top-1 -right-1 h-5 min-w-5 justify-center rounded-full px-1 text-xs">
+                {wishlistState.length}
+              </Badge>
+            )}
+          </Link>
+        </Button>
+
         {/* Cart */}
         <Button asChild variant="ghost" size="icon" className="relative">
           <Link to="/cart">
@@ -131,6 +145,13 @@ export default function Header() {
                     {link.label}
                   </Link>
                 ))}
+                <Link
+                  to="/wishlist"
+                  onClick={() => setMobileOpen(false)}
+                  className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
+                >
+                  Wishlist ({wishlistState.length})
+                </Link>
                 <Link
                   to="/cart"
                   onClick={() => setMobileOpen(false)}

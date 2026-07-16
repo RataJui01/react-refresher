@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useParams } from "react-router-dom";
-import { Heart, ShoppingCart, Minus, Plus, PackageX } from "lucide-react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Heart, ShoppingCart, Minus, Plus, PackageX, Check } from "lucide-react";
 import { getProductById, getProductsByCategory } from "@/data/products";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,10 +10,17 @@ import PageBreadcrumb from "@/components/catalog/PageBreadcrumb";
 import Rating from "@/components/product/Rating";
 import ProductCard from "@/components/product/ProductCard";
 import EmptyState from "@/components/common/EmptyState";
+import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
 
 export default function ProductDetailPage() {
   const { productId } = useParams();
+  const navigate = useNavigate();
   const product = getProductById(productId);
+  const { state: cart, dispatch } = useCart();
+  const { state: wishlist, dispatch: wishlistDispatch } = useWishlist();
+  const isWishlisted = wishlist.includes(productId);
+  const isInCart = cart.some((item) => item.productId === productId);
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [qty, setQty] = useState(1);
@@ -103,10 +110,10 @@ export default function ProductDetailPage() {
         {/* Info panel */}
         <div className="flex flex-col gap-4">
           <div>
-            <p className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
+            <p className="text-sm font-medium tracking-wide text-muted-foreground uppercase">
               {brand}
             </p>
-            <h1 className="font-display mt-1 text-3xl font-bold leading-tight">
+            <h1 className="mt-1 font-display text-3xl leading-tight font-bold">
               {name}
             </h1>
           </div>
@@ -114,7 +121,9 @@ export default function ProductDetailPage() {
           <Rating value={rating} count={reviewCount} size={18} />
 
           <div className="flex items-baseline gap-3">
-            <span className="text-2xl font-bold">฿{price.toLocaleString()}</span>
+            <span className="text-2xl font-bold">
+              ฿{price.toLocaleString()}
+            </span>
             {originalPrice && (
               <span className="text-lg text-muted-foreground line-through">
                 ฿{originalPrice.toLocaleString()}
@@ -127,7 +136,7 @@ export default function ProductDetailPage() {
             )}
           </div>
 
-          <p className="text-muted-foreground leading-relaxed">{description}</p>
+          <p className="leading-relaxed text-muted-foreground">{description}</p>
 
           <Separator />
 
@@ -144,7 +153,9 @@ export default function ProductDetailPage() {
                 >
                   <Minus size={14} />
                 </Button>
-                <span className="w-10 text-center text-sm font-medium">{qty}</span>
+                <span className="w-10 text-center text-sm font-medium">
+                  {qty}
+                </span>
                 <Button
                   variant="outline"
                   size="icon"
@@ -158,20 +169,41 @@ export default function ProductDetailPage() {
                 <Button
                   className="flex-1"
                   onClick={() => {
-                    // TODO: dispatch add to cart
+                    if (isInCart) {
+                      navigate("/cart");
+                      return;
+                    }
+                    dispatch({
+                      type: "ADD_ITEM",
+                      productId: productId,
+                      qty: qty,
+                    });
                   }}
                 >
-                  <ShoppingCart size={16} className="mr-2" />
-                  Add to Cart
+                  {isInCart ? (
+                    <>
+                      <Check size={16} className="mr-2" />
+                      View Cart
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingCart size={16} className="mr-2" />
+                      Add to Cart
+                    </>
+                  )}
                 </Button>
                 <Button
                   variant="outline"
                   size="icon"
+                  aria-pressed={isWishlisted}
                   onClick={() => {
-                    // TODO: dispatch add to wishlist
+                    wishlistDispatch({ type: "TOGGLE_ITEM", productId });
                   }}
                 >
-                  <Heart size={16} />
+                  <Heart
+                    size={16}
+                    className={isWishlisted ? "fill-destructive text-destructive" : ""}
+                  />
                 </Button>
               </div>
             </div>
@@ -191,8 +223,8 @@ export default function ProductDetailPage() {
           <TabsTrigger value="reviews">Reviews ({reviewCount})</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="description" className="mt-6 prose max-w-none">
-          <p className="text-muted-foreground leading-relaxed">{description}</p>
+        <TabsContent value="description" className="prose mt-6 max-w-none">
+          <p className="leading-relaxed text-muted-foreground">{description}</p>
         </TabsContent>
 
         <TabsContent value="specifications" className="mt-6">
@@ -218,7 +250,7 @@ export default function ProductDetailPage() {
       {/* Related products */}
       {related.length > 0 && (
         <section className="mt-16">
-          <h2 className="font-display mb-6 text-2xl font-semibold">
+          <h2 className="mb-6 font-display text-2xl font-semibold">
             You might also like
           </h2>
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">

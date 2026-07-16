@@ -1,9 +1,10 @@
-import { Link } from "react-router-dom";
-import { ShoppingCart } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { ShoppingCart, Heart, Check } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Rating from "./Rating";
 import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
 
 export default function ProductCard({ product }) {
   const {
@@ -18,7 +19,11 @@ export default function ProductCard({ product }) {
     images,
   } = product;
 
-  const { dispatch } = useCart();
+  const navigate = useNavigate();
+  const { state: cartItems, dispatch } = useCart();
+  const { state: wishlist, dispatch: wishlistDispatch } = useWishlist();
+  const isWishlisted = wishlist.includes(id);
+  const isInCart = cartItems.some((item) => item.productId === id);
 
   return (
     <div className="group flex flex-col overflow-hidden rounded-xl border bg-background transition-shadow hover:shadow-md">
@@ -40,6 +45,22 @@ export default function ProductCard({ product }) {
             Sale
           </Badge>
         )}
+        <button
+          type="button"
+          aria-label="Toggle wishlist"
+          aria-pressed={isWishlisted}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            wishlistDispatch({ type: "TOGGLE_ITEM", productId: id });
+          }}
+          className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-background/80 shadow-sm backdrop-blur-sm hover:bg-background"
+        >
+          <Heart
+            size={16}
+            className={isWishlisted ? "fill-destructive text-destructive" : "text-foreground"}
+          />
+        </button>
       </Link>
 
       <div className="flex flex-1 flex-col gap-2 p-4">
@@ -72,12 +93,16 @@ export default function ProductCard({ product }) {
 
           <Button
             size="sm"
-            variant="outline"
+            variant={isInCart ? "default" : "outline"}
             disabled={!inStock}
-            onClick={() => dispatch({ type: "ADD_ITEM", productId: id })}
+            onClick={() =>
+              isInCart
+                ? navigate("/cart")
+                : dispatch({ type: "ADD_ITEM", productId: id })
+            }
             className="shrink-0"
           >
-            <ShoppingCart size={14} />
+            {isInCart ? <Check size={14} /> : <ShoppingCart size={14} />}
           </Button>
         </div>
       </div>
