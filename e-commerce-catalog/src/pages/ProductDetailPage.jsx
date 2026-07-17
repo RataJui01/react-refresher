@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PageBreadcrumb from "@/components/catalog/PageBreadcrumb";
 import Rating from "@/components/product/Rating";
 import ProductCard from "@/components/product/ProductCard";
+import CustomerReviews from "@/components/product/CustomerReviews";
 import EmptyState from "@/components/common/EmptyState";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
@@ -241,9 +242,11 @@ export default function ProductDetailPage() {
         </TabsContent>
 
         <TabsContent value="reviews" className="mt-6">
-          <p className="text-muted-foreground">
-            Customer reviews coming soon. — TODO
-          </p>
+          <CustomerReviews
+            rating={rating}
+            reviewCount={reviewCount}
+            productId={productId}
+          />
         </TabsContent>
       </Tabs>
 
